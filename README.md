@@ -1,44 +1,45 @@
 # LearnHub — Gamified Learning Platform
 
-> **Day 2: Product Thinking & Design Challenge — Activity 1 (Product Design Exercise)**
-> Problem statement chosen: **"Design a Gamified Learning Platform."**
+> Day 2: Product Thinking & Design Challenge — Activity 1 (Product Design Exercise)
+> Problem statement: "Design a Gamified Learning Platform."
 
-LearnHub is a gamified learning platform for **tech upskilling** — built for
-interns and professionals who want to level up real engineering skills
-(JavaScript, React, Node.js, Cloud, System Design, DevOps). Learners complete
-hands-on **quests**, submit their work, and earn **XP, levels, streaks, and
-badges** when a mentor approves it. Mentors author quests and review
-submissions; admins manage people and watch platform analytics.
+LearnHub is a gamified learning platform for tech upskilling, aimed at interns
+and professionals building real engineering skills (JavaScript, React, Node.js,
+Cloud, System Design, DevOps). Learners complete hands-on quests, submit their
+work, and earn XP, levels, streaks, and badges once a mentor approves it.
+Mentors author quests and review submissions. Admins manage people and watch
+platform analytics.
 
-This repository is **a working full-stack MVP** (MERN), not just slides. The
-sections below double as the design deliverables for the exercise (user roles,
-key features, workflow diagram, wireframes, MVP definition) and the rest of the
-README explains how to run it.
+This repository is a working full-stack MVP (MERN), not just slides. The
+sections below are the design deliverables for the exercise (user roles, key
+features, workflow diagram, wireframes, MVP definition); the rest of the README
+explains how to run it.
 
-- **Backend:** Node + Express in an MVC layout, MongoDB via Mongoose, JWT auth,
-  bcrypt password hashing, multer for profile-picture uploads.
-- **Frontend:** Vite + React + Tailwind CSS, React Router, axios.
+- Backend: Node + Express (MVC layout), MongoDB via Mongoose, JWT auth, bcrypt
+  password hashing, multer for profile-picture uploads.
+- Frontend: Vite + React + Tailwind CSS, React Router, axios.
 
 ---
 
-## The product thinking behind it
+## The thinking behind it
 
-**Problem.** Corporate/intern upskilling programs have two chronic failures:
-they're *boring* (passive video courses with low completion) and *disconnected*
-from real work (you finish a course but can't apply it). Engagement drops, and
-managers can't see whether skills actually improved.
+**The problem.** Upskilling programs tend to fail in two ways: they're boring
+(passive video courses with low completion) and disconnected from real work
+(you finish a course but can't apply it). Engagement drops, and managers can't
+tell whether skills actually improved.
 
-**Insight.** Motivation and relevance are separate problems and both must be
-solved. Game mechanics (XP, levels, streaks, leaderboards) fix motivation;
-mentor-validated, build-something-real quests fix relevance. Validation by a
-human mentor is what makes the XP *mean* something — you can't grind fake
-points, so the leaderboard reflects genuine skill.
+**The idea.** Motivation and relevance are separate problems, and both need
+solving. Game mechanics (XP, levels, streaks, leaderboards) address motivation.
+Mentor-validated, build-something-real quests address relevance. Because a human
+mentor signs off on each submission, the XP means something: you can't grind
+fake points, so the leaderboard reflects real skill.
 
-**Why it wins.**
-- **Learners** get a clear progression loop and visible proof of growth.
-- **Mentors** get a lightweight review queue instead of ad-hoc mentoring.
-- **Org/admins** get analytics: who's active, which skills are growing, where
-  the review bottleneck is.
+**Who it helps.**
+
+- Learners get a clear progression loop and visible proof of growth.
+- Mentors get a lightweight review queue instead of ad-hoc mentoring.
+- Admins get analytics: who's active, which skills are growing, and where the
+  review bottleneck is.
 
 ---
 
@@ -46,64 +47,64 @@ points, so the leaderboard reflects genuine skill.
 
 | Role | Who they are | What they can do |
 | --- | --- | --- |
-| **Learner** | Intern / professional upskilling (default role on sign-up) | Browse & filter the quest catalog, start a quest, submit work, earn XP/levels/streaks/badges, track progress, view the leaderboard, manage their own profile |
-| **Mentor** | Senior engineer / coach | Author quests (draft → publish), edit/unpublish/delete their quests, review the submission queue, **approve** (awards XP) or **request changes** with feedback |
-| **Admin** | Program manager / platform owner | Everything a mentor can do, plus: manage all people (change roles learner↔mentor↔admin, activate/deactivate accounts), manage any quest, and view platform-wide analytics |
+| Learner | Intern or professional upskilling (default role on sign-up) | Browse and filter the quest catalog, start a quest, submit work, earn XP/levels/streaks/badges, track progress, view the leaderboard, manage their profile |
+| Mentor | Senior engineer or coach | Author quests (draft to publish), edit/unpublish/delete their quests, review the submission queue, approve (awards XP) or request changes with feedback |
+| Admin | Program manager or platform owner | Everything a mentor can do, plus manage all people (change roles, activate/deactivate accounts), manage any quest, and view platform-wide analytics |
 
-**Permission model (enforced server-side):**
+Permissions (enforced server-side):
 
 | Capability | Learner | Mentor | Admin |
 | --- | :---: | :---: | :---: |
-| Register / manage own profile | ✅ | ✅ | ✅ |
-| Browse published quests | ✅ | ✅ | ✅ |
-| Start / submit quest attempts | ✅ | — | — |
-| Earn XP / badges / streaks | ✅ | — | — |
-| Author & manage own quests | — | ✅ | ✅ |
-| Review submissions & award XP | — | ✅ (own quests) | ✅ (all) |
-| Manage users & roles | — | — | ✅ |
-| View platform analytics | — | — | ✅ |
+| Register / manage own profile | Yes | Yes | Yes |
+| Browse published quests | Yes | Yes | Yes |
+| Start / submit quest attempts | Yes | No | No |
+| Earn XP / badges / streaks | Yes | No | No |
+| Author & manage own quests | No | Yes | Yes |
+| Review submissions & award XP | No | Own quests | All |
+| Manage users & roles | No | No | Yes |
+| View platform analytics | No | No | Yes |
 
-> Guardrails: an admin can't change their own role or deactivate themselves, and
-> the system never lets the **last** admin be demoted or deleted.
+Guardrails: an admin can't change their own role or deactivate themselves, and
+the system never lets the last admin be demoted or deleted.
 
 ---
 
 ## 2. Key features
 
-**Gamification engine (the core differentiator)**
+**Gamification engine.** This is the core differentiator.
 
-- **XP & Levels** — XP is awarded only when a mentor approves a submission. Level
+- XP and levels. XP is awarded only when a mentor approves a submission. Level
   is derived from total XP on a triangular curve (`xpForLevel(L) = 50·(L−1)·L`),
-  so each level costs progressively more: L2=100, L3=300, L4=600, L5=1000 XP…
-- **Streaks** — Consecutive-day activity is tracked (current + longest). Approving
+  so each level costs more than the last: L2=100, L3=300, L4=600, L5=1000 XP.
+- Streaks. Consecutive-day activity is tracked (current and longest). Approving
   activity on consecutive days grows the streak; a gap resets it.
-- **Badges** — Auto-granted milestones: First Steps 🌱, Getting Serious 🔥 (5
-  quests), Quest Machine ⚙️ (10), Rising Star ⭐ (level 5), On Fire 📅 (7-day
-  streak), Track Master 🏆 (3 in one track).
-- **Leaderboard** — Learners ranked by XP, with medals for the top 3 and your own
-  rank pinned even if you're outside the visible list.
+- Badges. Auto-granted milestones: First Steps (1 quest), Getting Serious
+  (5 quests), Quest Machine (10 quests), Rising Star (level 5), On Fire (7-day
+  streak), Track Master (3 quests in one track).
+- Leaderboard. Learners ranked by XP, with the top 3 highlighted and your own
+  rank pinned even when you're outside the visible list.
 
-**Learning loop**
+**Learning loop.**
 
-- **Quest catalog** with track + difficulty filters; each card shows XP reward and
-  your attempt status.
-- **Quest detail** with full instructions and a submission form (link to your work
-  + notes). One attempt per learner per quest.
-- **Mentor review queue** — approve & award XP, or request changes with feedback
+- Quest catalog with track and difficulty filters; each card shows the XP reward
+  and your attempt status.
+- Quest detail with full instructions and a submission form (link to your work
+  plus notes). One attempt per learner per quest.
+- Mentor review queue: approve and award XP, or request changes with feedback
   (which sends the quest back to the learner for resubmission).
 
-**Platform & accounts**
+**Platform and accounts.**
 
-- JWT auth (register / login), self-service profile editing, password change,
+- JWT auth (register and login), self-service profile editing, password change,
   account deletion.
 - Admin analytics: users by role, quest counts, the submission funnel
-  (in-progress → submitted → approved), total XP awarded, and completions by track.
+  (in-progress, submitted, approved), total XP awarded, and completions by track.
 
 ---
 
 ## 3. Workflow diagram
 
-**Learner quest lifecycle (the core loop):**
+Learner quest lifecycle (the core loop):
 
 ```mermaid
 flowchart TD
@@ -124,7 +125,7 @@ flowchart TD
     L --> M
 ```
 
-**Role-based entry flow:**
+Role-based entry flow:
 
 ```mermaid
 flowchart LR
@@ -135,7 +136,7 @@ flowchart LR
     LD --> QC[Quest Catalog]
     QC --> QD[Quest Detail / Submit]
     MD --> AU[Author quests]
-    MD --> RV[Review queue → approve / changes]
+    MD --> RV[Review queue]
     AD --> PM[People & roles]
     AD --> AN[Analytics]
 ```
@@ -144,26 +145,28 @@ flowchart LR
 
 ## 4. Wireframes
 
-Low-fidelity layouts of the primary screens (these map 1:1 to the built pages).
+Low-fidelity layouts of the primary screens. These map one-to-one to the built
+pages.
 
 **Learner Dashboard**
 
 ```
 +--------------------------------------------------------------+
-|  LH LearnHub   Dashboard  Quests  Leaderboard   ⚡Lvl3  ⎋  |
+| LearnHub      Dashboard   Quests   Leaderboard   Account     |
 +--------------------------------------------------------------+
-|  ( 🙂 )  Hi, jane 👋                        [ Account ⚙ ]    |
-|          🔥 4-day streak · 420 XP · 3 done                   |
-+----------------------------------+---------------------------+
-|  YOUR PROGRESS                   |  LEADERBOARD     View all |
-|  Level 3  [██████░░░░] 120/300   |  1  asha       980 XP     |
-|   [ Lvl 3 ] [ 420 XP ] [ 7d best]|  2  you (jane) 420 XP     |
-+----------------------------------+  3  ravi       300 XP     |
-|  BADGES (2 earned)                                           |
-|  🌱 First Steps      🔥 Getting Serious                      |
+| Hi, Jane                                                     |
+| 4-day streak  -  420 XP  -  3 quests done                    |
++---------------------------------+----------------------------+
+| YOUR PROGRESS                   | LEADERBOARD     View all   |
+| Level 3  [######----] 120/300   | 1. Asha        980 XP      |
+| 420 XP   -   7-day best         | 2. You (Jane)  420 XP      |
+|                                 | 3. Ravi        300 XP      |
++---------------------------------+----------------------------+
+| BADGES (2 earned)                                            |
+| [ First Steps ]   [ Getting Serious ]                        |
 +--------------------------------------------------------------+
-|  CONTINUE LEARNING                          Browse all →     |
-|  React: Build a Reusable Modal  [React][interm]  In progress |
+| CONTINUE LEARNING                            Browse all      |
+| React: Build a Reusable Modal   React/Inter   In progress    |
 +--------------------------------------------------------------+
 ```
 
@@ -172,31 +175,31 @@ Low-fidelity layouts of the primary screens (these map 1:1 to the built pages).
 ```
 +--------------------------------------------------------------+
 |  Quest catalog                          [ Author a quest ]   |
-|  [ All tracks ▾ ]  [ All difficulties ▾ ]                    |
-+----------------+----------------+----------------------------+
-| [JS][beginner] | [Cloud][beg]   | [SysDes][advanced]         |
-| Tame the Array | Deploy to S3   | Design a URL Shortener     |
-| map/filter/... | host static... | sketch the architecture... |
-| +50 XP [Start] | +50 XP [Start] | +200 XP  [In progress]     |
-+----------------+----------------+----------------------------+
+|  [ All tracks v ]   [ All difficulties v ]                   |
++-----------------+-----------------+--------------------------+
+|  JS / beginner  |  Cloud / beg.   |  SysDesign / advanced    |
+|  Tame the Array |  Deploy to S3   |  Design a URL Shortener  |
+|  map, filter,.. |  host static..  |  sketch the architecture |
+|  +50 XP [Start] |  +50 XP [Start] |  +200 XP  [In progress]  |
++-----------------+-----------------+--------------------------+
 ```
 
 **Quest Detail / Submission**
 
 ```
 +--------------------------------------------------------------+
-|  ← Back to catalog                                           |
-|  [React][intermediate]  +100 XP                              |
+|  < Back to catalog                                           |
+|  React / intermediate   -   +100 XP                          |
 |  React: Build a Reusable Modal                               |
 |  Create an accessible, controlled modal component.           |
 +--------------------------------------------------------------+
 |  INSTRUCTIONS                                                |
-|  Build a <Modal open onClose> that closes on backdrop ...    |
+|  Build a Modal that closes on backdrop click and Escape...   |
 +--------------------------------------------------------------+
-|  SUBMIT YOUR WORK                         [ In progress ]    |
-|  Link to your work: [ https://github.com/...            ]    |
-|  Notes:             [ explain your approach...          ]    |
-|                                   [ Submit for review ]      |
+|  SUBMIT YOUR WORK                            In progress     |
+|  Link to your work:  [ https://github.com/...            ]   |
+|  Notes:              [ explain your approach...          ]   |
+|                                       [ Submit for review ]  |
 +--------------------------------------------------------------+
 ```
 
@@ -204,13 +207,13 @@ Low-fidelity layouts of the primary screens (these map 1:1 to the built pages).
 
 ```
 +--------------------------------------------------------------+
-|  Mentor workspace        ( My quests | Review queue )        |
+|  Mentor workspace          My quests  |  Review queue        |
 +--------------------------------------------------------------+
-|  ( 🙂 ) ravi submitted "Tame the Array"   [JS][beg] +50 XP  |
-|  Link: https://gist.github.com/...                           |
+|  Ravi submitted "Tame the Array"   JS / beg.   +50 XP        |
+|  Link:  https://gist.github.com/...                          |
 |  Notes: used reduce for the total...                         |
-|  Feedback: [ nice work, clean solution         ]            |
-|                  [ Request changes ] [ Approve & award XP ]  |
+|  Feedback: [ nice work, clean solution                  ]    |
+|                   [ Request changes ]  [ Approve & award ]   |
 +--------------------------------------------------------------+
 ```
 
@@ -218,15 +221,15 @@ Low-fidelity layouts of the primary screens (these map 1:1 to the built pages).
 
 ```
 +--------------------------------------------------------------+
-|  Admin portal             ( Overview | People )              |
+|  Admin portal              Overview  |  People               |
 +--------------------------------------------------------------+
-| [Learners 12][Mentors 3][Admins 1][Total XP 4,820]          |
-| [Quests 18][Published 14][Awaiting 5][Completed 47]         |
+|  Learners 12   Mentors 3   Admins 1   Total XP 4,820         |
+|  Quests 18   Published 14   Awaiting 5   Completed 47        |
 +--------------------------------------------------------------+
 |  COMPLETED QUESTS BY TRACK                                   |
-|  JavaScript   ████████████  18                               |
-|  React        ███████        9                               |
-|  Cloud        ████           6                               |
+|  JavaScript   ############   18                              |
+|  React        #######         9                              |
+|  Cloud        ####            6                              |
 +--------------------------------------------------------------+
 ```
 
@@ -234,51 +237,37 @@ Low-fidelity layouts of the primary screens (these map 1:1 to the built pages).
 
 ## 5. MVP definition
 
-The MVP is the smallest product that proves the core hypothesis: *mentor-validated,
-gamified quests drive engagement and visible skill growth.* Everything required for
-that loop is **built in this repo**.
+The MVP is the smallest product that proves the core hypothesis: that
+mentor-validated, gamified quests drive engagement and visible skill growth.
+Everything needed for that loop is built in this repo.
 
-**In scope (built):**
+In scope (built):
 
-- Email/password auth with three roles (learner / mentor / admin) and role-based
-  routing & access control.
+- Email/password auth with three roles (learner, mentor, admin) and role-based
+  routing and access control.
 - Quest catalog with tracks, difficulties, and XP rewards; mentor authoring
-  (draft/publish/edit/delete).
-- Full attempt lifecycle: start → submit → mentor approve / request changes.
+  (draft, publish, edit, delete).
+- Full attempt lifecycle: start, submit, mentor approve or request changes.
 - Gamification engine: XP, derived levels, daily streaks, auto-awarded badges.
 - Leaderboard ranked by XP.
 - Admin analytics dashboard and people/role management.
 - Profile management (edit, change password, delete account).
 
-**Explicitly out of scope (future):**
+Out of scope (future work):
 
-- Auto-graded quests (test runners / sandboxes) — MVP relies on human mentor review.
+- Auto-graded quests (test runners or sandboxes). The MVP relies on human review.
 - Teams/cohorts, seasonal challenges, and head-to-head competitions.
-- Notifications (email/in-app), comments/discussion threads.
-- Skill trees / prerequisite paths and certificates.
+- Notifications (email or in-app), comments, and discussion threads.
+- Skill trees, prerequisite paths, and certificates.
 - SSO, payments, and granular org hierarchies.
 
-**Success metrics to validate the MVP:**
+Success metrics:
 
-- **Activation:** % of new learners who complete ≥1 quest in their first week.
-- **Engagement:** weekly active learners, median streak length, quests started→submitted rate.
-- **Quality/throughput:** submission→approval rate, mentor review turnaround time.
-- **Growth proof:** average XP/level gained per learner per month.
-
----
-
-## Mapping to the evaluation parameters
-
-- **Product thinking** — Clear problem → insight → solution; a tightly scoped MVP
-  with explicit out-of-scope cuts and measurable success metrics.
-- **Creativity** — A gamification engine (triangular XP curve, streaks, milestone
-  badges) tied to *validated* real-world quests, not vanity points.
-- **Communication** — This README: roles, features, diagrams, wireframes, and MVP
-  laid out for a reader to grasp quickly.
-- **Collaboration** — The mentor↔learner review loop is the product's heart;
-  feedback and resubmission are first-class.
-- **Leadership** — Admin analytics + role management give a program owner the
-  levers to run, grow, and unblock the platform.
+- Activation: share of new learners who complete at least one quest in week one.
+- Engagement: weekly active learners, median streak length, started-to-submitted
+  rate.
+- Quality and throughput: submission-to-approval rate, mentor review turnaround.
+- Growth: average XP and levels gained per learner per month.
 
 ---
 
@@ -307,7 +296,7 @@ that loop is **built in this repo**.
 ## Prerequisites
 
 - Node.js 18+
-- MongoDB running locally (`mongodb://127.0.0.1:27017`) **or** a MongoDB Atlas
+- MongoDB running locally (`mongodb://127.0.0.1:27017`) or a MongoDB Atlas
   connection string.
 
 ## Setup
@@ -329,8 +318,8 @@ Default seeded accounts (change in `.env`):
 | Admin | `admin@example.com` | `admin123` |
 | Mentor | `mentor@example.com` | `mentor123` |
 
-Register your own **learner** account from the sign-up page to experience the
-full XP loop.
+Register your own learner account from the sign-up page to experience the full
+XP loop.
 
 #### Environment variables (`backend/.env`)
 
@@ -387,3 +376,4 @@ so no extra config is needed in development.
 | PATCH | `/api/admin/users/:id/activate` | admin | Activate a user |
 | PATCH | `/api/admin/users/:id/deactivate` | admin | Deactivate a user |
 | GET | `/api/admin/analytics` | admin | Platform-wide summary |
+```
